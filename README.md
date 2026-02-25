@@ -55,7 +55,13 @@ Skrip referensi: `app.py`
       ollama run llama3.1:8b
       ```
 
-2. **Klon / Copy Folder Proyek Ini.**
+2. **Klon Repositori Ini dari GitHub:**
+   Anda dapat melakukan *Fork* repositori ini di GitHub jika ingin ikut berkontribusi, atau dapat langsung melakukan *clone*:
+   ```bash
+   git clone https://github.com/rizal0404/RAT_YT.git
+   cd RAT_YT
+   ```
+
 3. **Membuat dan Mengaktifkan Virtual Environment:**
    * **Windows (PowerShell):**
      ```powershell
