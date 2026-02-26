@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic RAG Lokal - Portal QC</title>
+    <!-- Modern google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <!-- Marked js for markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        
+        <!-- Sidebar Kiri: Kontrol & Data Ingensi -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>RAG<span>QC Portal</span></h2>
+                <div class="ai-status">
+                    <span class="status-dot"></span> System Ready
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Pengaturan AI</h3>
+                <div class="control-group">
+                    <label>LLM Engine</label>
+                    <select id="llm-select">
+                        <option value="local">Local Ollama (Llama 3.1)</option>
+                        <option value="cloud">Cloud API (OpenAI)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Dokumen Tertaut (Top-K)</label>
+                    <input type="range" id="topk-slider" min="1" max="10" value="3" oninput="document.getElementById('topk-value').innerText = this.value">
+                    <span id="topk-value" class="slider-val">3</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section data-section">
+                <h3>Data Pengetahuan (PDF)</h3>
+                <div class="upload-zone" id="drop-zone">
+                    <div class="upload-icon">📄</div>
+                    <p>Seret file PDF ke sini atau <span class="highlight">Pilih File</span></p>
+                    <input type="file" id="file-input" accept=".pdf" hidden>
+                </div>
+
+                <button id="btn-ingest" class="btn-primary">
+                    Proses Pemahaman (Ingestion)
+                </button>
+
+                <!-- Loading StatusBar / Progress -->
+                <div id="ingest-progress-container" class="progress-box hidden">
+                    <div class="progress-header">
+                        <span>Memproses Data...</span>
+                        <div class="loader-spinner"></div>
+                    </div>
+                    <div id="ingest-logs" class="logs-container">
+                        <!-- Logs Muncul Disini -->
+                    </div>
+                </div>
+
+                <div class="document-list-container">
+                    <h4>Dokumen Terekstrak:</h4>
+                    <ul id="document-list" class="doc-list">
+                        <!-- File muncul lewat JS -->
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="author-credits">
+                Built locally for Agentic QC
+            </div>
+        </aside>
+
+        <!-- Area Utama: Chat RAG -->
+        <main class="chat-area">
+            <header class="chat-header">
+                <div class="header-info">
+                    <h1>Sistem Penjawab Bersumber (RAG)</h1>
+                    <p>Tanyakan operasional, prosedur, atau kebijakan kepada agen QC ini.</p>
+                </div>
+                <div class="theme-toggle" id="theme-toggle" title="Toggle Light/Dark Theme">
+                   🌓
+                </div>
+            </header>
+
+            <div class="chat-box" id="chat-box">
+                <!-- Welcome Message AI -->
+                <div class="message ai-msg">
+                    <div class="msg-avatar">AI</div>
+                    <div class="msg-bubble">
+                        <div class="markdown-body">
+                            Halo! Saya agen QC pintar Anda yang telah membaca dokumen operasional di sistem. Apa yang ingin Anda tanyakan hari ini?
+                        </div>
+                    </div>
+                </div>
+                <!-- Peserta chat muncul disini melalui JS -->
+            </div>
+
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea id="chat-input" placeholder="Ketik pertanyaan Anda tentang manual operasional..." rows="1"></textarea>
+                    <button id="btn-send" class="btn-send">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+                <div class="footer-note">
+                    RAG AI dapat berbuat kesalahan. Selalu periksa silang (Citations) ke dokumen asli.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/app.js"></script>
+</body>
+</html>

@@ -6,6 +6,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
 from langchain_ollama import OllamaEmbeddings
+from typing import List, Callable, Optional
 import os
 from dotenv import load_dotenv
 import pytesseract
@@ -13,7 +14,19 @@ import pytesseract
 load_dotenv()
 
 # Configure Tesseract path for Windows
-pytesseract.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR/tesseract.exe'
+tesseract_path = os.environ.get("TESSERACT_PATH", r"C:\Program Files\Tesseract-OCR\tesseract.exe")
+pytesseract.pytesseract.tesseract_cmd = tesseract_path
+
+try:
+    import unstructured_pytesseract
+    unstructured_pytesseract.pytesseract.tesseract_cmd = tesseract_path
+except ImportError:
+    pass
+
+# Add tesseract directory to OS PATH for 'unstructured' library
+tesseract_dir = os.path.dirname(tesseract_path)
+if tesseract_dir not in os.environ.get("PATH", ""):
+    os.environ["PATH"] = tesseract_dir + os.pathsep + os.environ.get("PATH", "")
 
 def get_embedding_function():
     """
@@ -27,27 +40,37 @@ def get_embedding_function():
 DB_PATH = "chroma_db"
 DATA_PATH = "data"
 
-def main():
+def main(progress_callback: Optional[Callable[[str], None]] = None):
     """
     Main ingestion pipeline:
     1. Load PDFs from the data directory.
     2. Split documents into chunks.
     3. Add chunks to ChromaDB incrementally, preventing duplicates.
     """
+    def notify(msg: str):
+        print(msg)
+        if progress_callback:
+            progress_callback(msg)
+
     # 1. Load documents
+    notify("Memulai proses Ingestion...")
+    notify("Status: Membaca dokumen (Scanning/OCR)...")
     documents = load_documents()
-    print(f"Memuat {len(documents)} dokumen PDF.")
+    notify(f"Berhasil memuat {len(documents)} dokumen PDF.")
 
     if not documents:
-        print(f"Tidak ada dokumen yang ditemukan di direktori '{DATA_PATH}'.")
+        notify(f"Tidak ada dokumen yang ditemukan di direktori '{DATA_PATH}'.")
         return
 
     # 2. Split into chunks
+    notify("Status: Memecah dokumen menjadi chunks (Text Splitting)...")
     chunks = split_documents(documents)
-    print(f"Dokumen dibagi menjadi {len(chunks)} chunks.")
+    notify(f"Dokumen dibagi menjadi {len(chunks)} chunks.")
 
     # 3. Add to ChromaDB
-    add_to_chroma(chunks)
+    notify("Status: Menghitung embeddings dan menyimpan ke ChromaDB...")
+    add_to_chroma(chunks, progress_callback=notify)
+    notify("Status: Selesai")
 
 def load_documents() -> List[Document]:
     """Loads PDF documents from the specified directory using Unstructured for OCR."""
@@ -104,8 +127,14 @@ def calculate_chunk_ids(chunks: List[Document]) -> List[Document]:
 
     return chunks
 
-def add_to_chroma(chunks: List[Document]):
+def add_to_chroma(chunks: List[Document], progress_callback: Optional[Callable[[str], None]] = None):
     """Adds only new chunks to the vector database."""
+    def notify(msg: str):
+        if progress_callback:
+            progress_callback(msg)
+        else:
+            print(msg)
+
     # Ensure chunk IDs are calculated
     chunks_with_ids = calculate_chunk_ids(chunks)
 
@@ -120,7 +149,7 @@ def add_to_chroma(chunks: List[Document]):
     # you might need to query specific IDs or use a different mechanism.
     existing_items = db.get(include=[])  # include=[] to fetch only IDs
     existing_ids = set(existing_items["ids"])
-    print(f"Jumlah dokumen yang sudah ada di DB: {len(existing_ids)}")
+    notify(f"Jumlah dokumen yang sudah ada di DB: {len(existing_ids)}")
 
     # Filter out chunks that are already in the DB
     new_chunks = []
@@ -130,13 +159,13 @@ def add_to_chroma(chunks: List[Document]):
 
     # Add new chunks to DB
     if len(new_chunks) > 0:
-        print(f"⏩ Menambahkan hal baru: {len(new_chunks)} chunks.")
+        notify(f"⏩ Menambahkan hal baru: {len(new_chunks)} chunks.")
         # Extract IDs parallel to the chunk list
         new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
         db.add_documents(new_chunks, ids=new_chunk_ids)
-        print("✅ Data berhasil disimpan secara inkremental.")
+        notify("✅ Data berhasil disimpan secara inkremental.")
     else:
-        print("✅ Tidak ada data baru untuk ditambahkan.")
+        notify("✅ Tidak ada data baru untuk ditambahkan.")
 
 def clear_database():
     """Utility to clear the database directory."""

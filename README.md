@@ -72,6 +72,7 @@ Skrip referensi: `app.py`
 4. **Instalasi Dependencies Pustaka Python:**
    ```bash
    pip install -r requirements.txt
+   pip install fastapi uvicorn python-multipart
    ```
 
 5. **Konfigurasi Variabel Lingkungan (.env):**
@@ -81,11 +82,36 @@ Skrip referensi: `app.py`
      EMBEDDING_MODEL="mxbai-embed-large"
      OLLAMA_BASE_URL="http://localhost:11434"
      OLLAMA_LLM_MODEL="llama3.1:8b"
+     
+     # [PENTING UNTUK WINDOWS] Gunakan Forward Slash (/) BUKAN Backslash (\)
+     # Backslash (\t) akan terbaca sebagai tombol TAB dan membuat error "Tesseract Not Found".
+     TESSERACT_PATH="C:/Program Files/Tesseract-OCR/tesseract.exe"
      ```
 
 ---
 
-## 🚀 4. Instruksi Penggunaan
+## 🚀 4. Instruksi Penggunaan (Web Dashboard Interaktif)
+
+Aplikasi ini sekarang memiliki antarmuka Web UI/UX modern bergaya *Glassmorphism* dan bernuansa *Dark Mode*. Tidak perlu lagi mengetik terminal secara manual!
+
+### Langkah Menjalankan Web Server:
+Jalankan server aplikasi (FastAPI) menggunakan perintah berikut:
+
+```bash
+uvicorn server:app --host 0.0.0.0 --port 8000
+```
+*(Tambahkan `--reload` jika ingin mode pengembangan).*
+
+Setelah itu, silakan buka peramban (*browser*) Anda ke **[http://localhost:8000](http://localhost:8000)**.
+
+### Menggunakan Aplikasi Web:
+1. **Upload Dokumen:** Di bilah sisi (Sidebar) bagian bawah, *drag & drop* atau klik untuk unggah file PDF manual / operasi Anda.
+2. **Memproses Data (Ingestion):** Klik tombol **Proses Pemahaman**. Kotak terminal kecil di layar (*logs bar*) akan menampilkan laporan status secara langsung (misal: "Memecah teks chunks", "Scanning OCR", atau "Siap ke ChromaDB").
+3. **Mulai Chat:** Ketik pertanyaan operasional/prosedur yang ada pada dokumen tersebut di kolom *chat box*. Anda juga bisa menyetel pengatur (Top-K) di sidebar untuk menentukan seberapa dalam agen membaca referensi halaman yang mirip.
+
+---
+
+## 💻 Opsional: Mode Terminal (CLI) Tradisional
 
 ### Langkah 1: Memproses File Dokumen (Ingestion)
 1. Letakkan seluruh file PDF dokumen petunjuk, manual, atau buku referensi Anda ke dalam folder `data/` *(Contoh: `data/Buku_SOP.pdf`)*.
